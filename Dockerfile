@@ -1,4 +1,4 @@
-FROM python:3.11-slim
+FROM python:3.14-slim
 
 LABEL maintainer="Corey A. Wade <corey@coreywade.com>"
 LABEL description="SOFAM-Net: Federated Learning for Cross-Organization Threat Detection"
