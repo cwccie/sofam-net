@@ -1,0 +1,74 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "sofam-net"
+version = "0.1.0"
+description = "Production federated learning platform for cross-organization threat detection"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.11"
+authors = [
+    { name = "Corey A. Wade", email = "corey@coreywade.com" },
+]
+keywords = [
+    "federated-learning",
+    "intrusion-detection",
+    "differential-privacy",
+    "secure-aggregation",
+    "cybersecurity",
+    "threat-detection",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Security",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = [
+    "numpy>=1.24",
+    "click>=8.0",
+    "flask>=3.0",
+    "requests>=2.31",
+    "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+flower = ["flwr>=1.5"]
+gpu = ["torch>=2.0"]
+dev = [
+    "pytest>=7.4",
+    "pytest-cov>=4.1",
+    "ruff>=0.1",
+]
+all = ["sofam-net[flower,gpu,dev]"]
+
+[project.scripts]
+sofam = "sofam_net.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/cwccie/sofam-net"
+Documentation = "https://github.com/cwccie/sofam-net#readme"
+Repository = "https://github.com/cwccie/sofam-net"
+Issues = "https://github.com/cwccie/sofam-net/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/sofam_net"]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+src = ["src"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W", "UP", "B", "SIM"]
+ignore = ["E501", "N803", "N806", "B905", "B007"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-v --tb=short"

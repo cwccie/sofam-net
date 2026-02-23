@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SOFAM-Net Dashboard</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+               background: #0a0e1a; color: #e0e6ed; }
+        .header { background: linear-gradient(135deg, #1a1f35, #0d1117);
+                   padding: 24px 32px; border-bottom: 1px solid #30363d; }
+        .header h1 { font-size: 24px; color: #58a6ff; }
+        .header p { color: #8b949e; margin-top: 4px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+                gap: 20px; padding: 24px 32px; }
+        .card { background: #161b22; border: 1px solid #30363d; border-radius: 8px;
+                padding: 20px; }
+        .card h2 { font-size: 16px; color: #58a6ff; margin-bottom: 16px;
+                    padding-bottom: 8px; border-bottom: 1px solid #21262d; }
+        .metric { display: flex; justify-content: space-between; padding: 8px 0;
+                  border-bottom: 1px solid #21262d; }
+        .metric:last-child { border-bottom: none; }
+        .metric-label { color: #8b949e; }
+        .metric-value { font-weight: 600; color: #e0e6ed; }
+        .status-active { color: #3fb950; }
+        .status-idle { color: #d29922; }
+        .status-error { color: #f85149; }
+        .progress-bar { width: 100%; height: 8px; background: #21262d;
+                        border-radius: 4px; margin-top: 8px; overflow: hidden; }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, #58a6ff, #3fb950);
+                         border-radius: 4px; transition: width 0.5s; }
+        .client-list { list-style: none; }
+        .client-list li { padding: 8px 0; border-bottom: 1px solid #21262d;
+                          display: flex; justify-content: space-between; }
+        .budget-bar { width: 100%; height: 6px; background: #21262d;
+                      border-radius: 3px; margin-top: 4px; }
+        .budget-fill { height: 100%; border-radius: 3px; transition: width 0.5s; }
+        .budget-ok { background: #3fb950; }
+        .budget-warn { background: #d29922; }
+        .budget-critical { background: #f85149; }
+        .round-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+        .round-table th { text-align: left; color: #8b949e; padding: 8px 4px;
+                          border-bottom: 1px solid #30363d; }
+        .round-table td { padding: 8px 4px; border-bottom: 1px solid #21262d; }
+        .footer { text-align: center; padding: 24px; color: #484f58; font-size: 12px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>SOFAM-Net Federation Dashboard</h1>
+        <p>Secure Optimized Federated Autonomous Model &mdash; Cross-Organization Threat Detection</p>
+    </div>
+
+    <div class="grid">
+        <div class="card">
+            <h2>Coordinator Status</h2>
+            <div id="coordinator-status">
+                <div class="metric">
+                    <span class="metric-label">State</span>
+                    <span class="metric-value" id="state">Loading...</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Current Round</span>
+                    <span class="metric-value" id="current-round">-</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Total Rounds</span>
+                    <span class="metric-value" id="total-rounds">-</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Registered Clients</span>
+                    <span class="metric-value" id="num-clients">-</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Pending Updates</span>
+                    <span class="metric-value" id="pending-updates">-</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="round-progress" style="width: 0%"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Organizations</h2>
+            <ul class="client-list" id="client-list">
+                <li><span class="metric-label">No clients registered</span></li>
+            </ul>
+        </div>
+
+        <div class="card">
+            <h2>Privacy Budgets</h2>
+            <div id="privacy-budgets">
+                <p class="metric-label">No privacy data available</p>
+            </div>
+        </div>
+
+        <div class="card" style="grid-column: 1 / -1;">
+            <h2>Training History</h2>
+            <table class="round-table" id="history-table">
+                <thead>
+                    <tr>
+                        <th>Round</th>
+                        <th>Clients</th>
+                        <th>Samples</th>
+                        <th>Loss</th>
+                        <th>Accuracy</th>
+                        <th>Duration</th>
+                        <th>Converged</th>
+                    </tr>
+                </thead>
+                <tbody id="history-body">
+                    <tr><td colspan="7" style="text-align:center; color:#8b949e;">No rounds completed yet</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="footer">
+        SOFAM-Net v0.1.0 &mdash; Corey A. Wade &mdash; PhD Research, University of Oklahoma
+    </div>
+
+    <script>
+        async function fetchData(url) {
+            try {
+                const res = await fetch(url);
+                if (!res.ok) return null;
+                return await res.json();
+            } catch { return null; }
+        }
+
+        async function updateDashboard() {
+            // Coordinator status
+            const status = await fetchData('/api/status');
+            if (status) {
+                document.getElementById('state').textContent = status.state;
+                document.getElementById('state').className = 'metric-value status-' +
+                    (status.state === 'idle' ? 'idle' : status.state === 'completed' ? 'active' : 'active');
+                document.getElementById('current-round').textContent = status.current_round;
+                document.getElementById('total-rounds').textContent = status.total_rounds;
+                document.getElementById('num-clients').textContent = status.registered_clients;
+                document.getElementById('pending-updates').textContent = status.pending_updates;
+
+                const pct = status.total_rounds > 0
+                    ? (status.current_round / status.total_rounds * 100) : 0;
+                document.getElementById('round-progress').style.width = pct + '%';
+
+                // Clients
+                const clientList = document.getElementById('client-list');
+                const clients = Object.entries(status.clients || {});
+                if (clients.length > 0) {
+                    clientList.innerHTML = clients.map(([id, c]) =>
+                        `<li><span>${c.org} (${id.substring(0,12)})</span><span>${c.samples} samples, ${c.rounds} rounds</span></li>`
+                    ).join('');
+                }
+
+                // History
+                if (status.history && status.history.length > 0) {
+                    document.getElementById('history-body').innerHTML = status.history.map(r =>
+                        `<tr>
+                            <td>${r.round}</td>
+                            <td>${r.clients}</td>
+                            <td>${r.samples}</td>
+                            <td>${(r.metrics.loss || 0).toFixed(4)}</td>
+                            <td>${((r.metrics.accuracy || 0) * 100).toFixed(1)}%</td>
+                            <td>${r.duration.toFixed(3)}s</td>
+                            <td>${r.converged ? 'Yes' : 'No'}</td>
+                        </tr>`
+                    ).join('');
+                }
+            }
+
+            // Privacy budgets
+            const privacy = await fetchData('/api/privacy');
+            if (privacy && privacy.budgets) {
+                const container = document.getElementById('privacy-budgets');
+                const entries = Object.entries(privacy.budgets);
+                if (entries.length > 0) {
+                    container.innerHTML = entries.map(([id, b]) => {
+                        const pct = (b.fraction_spent * 100).toFixed(1);
+                        const cls = b.fraction_spent > 0.9 ? 'budget-critical' :
+                                    b.fraction_spent > 0.7 ? 'budget-warn' : 'budget-ok';
+                        return `<div style="margin-bottom:12px">
+                            <div class="metric"><span class="metric-label">${id}</span>
+                            <span class="metric-value">${b.spent_epsilon.toFixed(4)} / ${b.total_epsilon} (${pct}%)</span></div>
+                            <div class="budget-bar"><div class="budget-fill ${cls}" style="width:${pct}%"></div></div>
+                        </div>`;
+                    }).join('');
+                }
+            }
+        }
+
+        updateDashboard();
+        setInterval(updateDashboard, 3000);
+    </script>
+</body>
+</html>

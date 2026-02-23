@@ -1,0 +1,106 @@
+# SOFAM-Net: Multi-Container Federated Learning Deployment
+#
+# Architecture:
+#   coordinator (port 8080)  — FL coordinator with REST API
+#   client-a, client-b, client-c — Simulated organization clients
+#   dashboard (port 5000)    — Web monitoring UI
+#
+# Usage:
+#   docker-compose up --build
+#   Open http://localhost:5000 for dashboard
+#   API available at http://localhost:8080
+
+version: "3.8"
+
+services:
+  coordinator:
+    build: .
+    container_name: sofam-coordinator
+    ports:
+      - "8080:8080"
+    command: >
+      sofam start-coordinator
+        --host 0.0.0.0
+        --port 8080
+        --strategy fedavg
+        --num-rounds 20
+        --min-clients 3
+        -v
+    environment:
+      - SOFAM_ROLE=coordinator
+    healthcheck:
+      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:8080/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  client-a:
+    build: .
+    container_name: sofam-client-a
+    depends_on:
+      coordinator:
+        condition: service_healthy
+    command: >
+      sofam start-client
+        --coordinator-url http://coordinator:8080
+        --org-name "Organization-A"
+        --client-id client-org-a
+        --epochs 5
+        --batch-size 32
+        -v
+    environment:
+      - SOFAM_ROLE=client
+      - SOFAM_ORG=Organization-A
+
+  client-b:
+    build: .
+    container_name: sofam-client-b
+    depends_on:
+      coordinator:
+        condition: service_healthy
+    command: >
+      sofam start-client
+        --coordinator-url http://coordinator:8080
+        --org-name "Organization-B"
+        --client-id client-org-b
+        --epochs 5
+        --batch-size 32
+        -v
+    environment:
+      - SOFAM_ROLE=client
+      - SOFAM_ORG=Organization-B
+
+  client-c:
+    build: .
+    container_name: sofam-client-c
+    depends_on:
+      coordinator:
+        condition: service_healthy
+    command: >
+      sofam start-client
+        --coordinator-url http://coordinator:8080
+        --org-name "Organization-C"
+        --client-id client-org-c
+        --epochs 5
+        --batch-size 32
+        -v
+    environment:
+      - SOFAM_ROLE=client
+      - SOFAM_ORG=Organization-C
+
+  dashboard:
+    build: .
+    container_name: sofam-dashboard
+    ports:
+      - "5000:5000"
+    depends_on:
+      coordinator:
+        condition: service_healthy
+    command: >
+      sofam dashboard
+        --host 0.0.0.0
+        --port 5000
+        -v
+    environment:
+      - SOFAM_ROLE=dashboard
+      - SOFAM_COORDINATOR_URL=http://coordinator:8080
