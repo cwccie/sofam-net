@@ -321,7 +321,7 @@ MIT License — see [LICENSE](LICENSE) for details.
 ## Author
 
 **Corey A. Wade**
-PhD Candidate, University of Oklahoma
+PhD, National University
 CISSP | Retired CCIE
 
 ---
