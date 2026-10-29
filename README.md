@@ -274,7 +274,7 @@ The simulation harness allows systematic exploration of this tradeoff.
 ## Research Context
 
 SOFAM-Net is the production implementation of **SOFAM** (Secure Optimized Federated
-Autonomous Model), a research framework developed at the **University of Oklahoma**
+Autonomous Model), a research framework developed at the **National University**
 as part of PhD research in AI and cybersecurity.
 
 ### Key Research Contributions
