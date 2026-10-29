@@ -117,7 +117,7 @@ src/sofam_net/
 ## Research Context
 
 SOFAM-Net extends the **SOFAM** (Secure Optimized Federated Autonomous Model)
-research from the University of Oklahoma. When contributing to core algorithms
+research from the National University. When contributing to core algorithms
 (strategies, privacy mechanisms, robust aggregation), please include references
 to relevant academic papers in docstrings.
 
